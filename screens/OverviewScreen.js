@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { getRevenueByRange } from '../api/db.js';
+// import { getRevenueByRange } from '../api/db.js';
 
 export default function OverviewScreen() {
   const [showPicker, setShowPicker] = useState(null); // 'start' | 'end'
@@ -39,10 +39,10 @@ const handleThisYear = () => {
 };
 
 
-  useEffect(() => {
-    const data = getRevenueByRange(formattedStart, formattedEnd);
-    setRevenueData(data);
-  }, [formattedStart, formattedEnd]);
+  // useEffect(() => {
+  //   const data = getRevenueByRange(formattedStart, formattedEnd);
+  //   setRevenueData(data);
+  // }, [formattedStart, formattedEnd]);
 
 const setRangeToWeek = () => {
   const today = new Date();

@@ -24,28 +24,19 @@ const menuData = [
     icon: "hardware-chip-outline",
     children: [],
   },
-  {
-    title: "Quản lý thu chi",
-    icon: "cash-outline",
-    children: ["Danh sách phiếu", "Loại phiếu"],
-  },
+ 
   {
     title: "Thiết lập nhà hàng",
     icon: "settings-outline",
     children: [
       "Thông tin nhà hàng",
-      "Thiết lập bán hàng",
       "Tài khoản nhà hàng",
       "Thiết lập ngôn ngữ",
     ],
   },
+
   {
-    title: "Chat với Sapo",
-    icon: "chatbubble-ellipses-outline",
-    children: [],
-  },
-  {
-    title: "Chuyển nhà hàng khác",
+    title: "Đăng xuất",
     icon: "swap-horizontal-outline",
     children: [],
   },

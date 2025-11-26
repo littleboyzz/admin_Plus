@@ -24,7 +24,7 @@ import EmployeeFormScreen from "./screensmini/EmployeeFormScreen";
 import RestaurantInfoScreen from "./screensmini/RestaurantInfoScreen";
 import LanguageSettingScreen from "./screensmini/LanguageSettingScreen";
 import AccountScreen from './screensmini/AccountScreen';
-
+import LoginScreen from './screens/LoginScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -58,7 +58,13 @@ export default function App() {
       <Stack.Navigator>
         {/* Tab chính */}
         <Stack.Screen
-          name="HomeTabs"
+          name="Login"
+          component={LoginScreen}
+          options={{ headerShown: false }}
+        />
+                {/* Tab chính */}
+        <Stack.Screen
+          name="MainTab"
           component={TabNavigator}
           options={{ headerShown: false }}
         />
