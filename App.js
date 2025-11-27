@@ -25,9 +25,11 @@ import RestaurantInfoScreen from "./screensmini/RestaurantInfoScreen";
 import LanguageSettingScreen from "./screensmini/LanguageSettingScreen";
 import AccountScreen from './screensmini/AccountScreen';
 import LoginScreen from './screens/LoginScreen';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+/* ------------------------ BOTTOM TAB ------------------------ */
 function TabNavigator() {
   return (
     <Tab.Navigator
@@ -38,6 +40,7 @@ function TabNavigator() {
           else if (route.name === "Báo cáo") iconName = "bar-chart";
           else if (route.name === "Hoá đơn") iconName = "receipt";
           else if (route.name === "Thêm") iconName = "menu";
+
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "#007AFF",
@@ -52,39 +55,53 @@ function TabNavigator() {
   );
 }
 
+/* ------------------------ MAIN APP ------------------------ */
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        {/* Tab chính */}
+
+        {/* Màn Login */}
         <Stack.Screen
           name="Login"
           component={LoginScreen}
           options={{ headerShown: false }}
         />
-                {/* Tab chính */}
+
+        {/* Tab chính */}
         <Stack.Screen
           name="MainTab"
           component={TabNavigator}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="Chi tiết hoá đơn" component={InvoiceDetailScreen} />
-        {/* Các màn hình phụ */}
+
+        {/* 🔥 SỬA ĐÚNG MÀN HÓA ĐƠN CHI TIẾT */}
+        <Stack.Screen
+          name="InvoiceDetail"
+          component={InvoiceDetailScreen}
+          options={{ title: "Chi tiết hoá đơn" }}
+        />
+
+        {/* ------- Các màn hình phụ ------- */}
         <Stack.Screen name="Mặt hàng" component={ItemListScreen} />
         <Stack.Screen name="Chi tiết mặt hàng" component={ItemDetailScreen} />
         <Stack.Screen name="Thêm mặt hàng" component={AddItemScreen} />
+
         <Stack.Screen name="Vai trò" component={RoleListScreen} />
         <Stack.Screen name="Chi tiết vai trò" component={RoleDetailScreen} />
         <Stack.Screen name="Tạo vai trò" component={RoleCreateScreen} />
+
         <Stack.Screen name="Nhân viên" component={EmployeeListScreen} />
-        <Stack.Screen name="Chi tiết nhân viên" component={EmployeeDetailScreen}/>
+        <Stack.Screen name="Chi tiết nhân viên" component={EmployeeDetailScreen} />
         <Stack.Screen name="Form nhân viên" component={EmployeeFormScreen} />
-<Stack.Screen name="Danh sách vai trò" component={RoleListScreen} />
-<Stack.Screen name="EmployeeForm" component={EmployeeFormScreen} />
-{/* <Stack.Screen name="Tạo vai trò" component={RoleDetailScreen} /> */}
+
+        <Stack.Screen name="Danh sách vai trò" component={RoleListScreen} />
+        <Stack.Screen name="EmployeeForm" component={EmployeeFormScreen} />
+
         <Stack.Screen name="Thông tin nhà hàng" component={RestaurantInfoScreen} />
         <Stack.Screen name="List giờ chơi" component={ListPlayPriceScreen} />
         <Stack.Screen name="Add giờ chơi" component={AddPlayScreen} />
+
         <Stack.Screen name="Thiết lập ngôn ngữ" component={LanguageSettingScreen} />
         <Stack.Screen name="Tài khoản" component={AccountScreen} />
 

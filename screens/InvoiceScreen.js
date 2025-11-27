@@ -1,150 +1,201 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  TouchableOpacity, // Import TouchableOpacity
-  ScrollView,
   FlatList,
-  Alert, // Thêm Alert để mô phỏng hành động
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
 } from "react-native";
+import { getBills } from "../services/billService";
 import { Ionicons } from "@expo/vector-icons";
 
 const tabs = [
-  "Tất cả",
-  "Đã thanh toán",
-  "Hoàn tiền một phần",
-  "Hoàn tiền",
-  "Đã huỷ",
-  "Ghi nợ",
+  { label: "Tất cả", value: "all" },
+  { label: "Đã thanh toán", value: "paid" },
+  { label: "Chưa thanh toán", value: "unpaid" },
 ];
 
-const invoices = [
-  {
-    id: "100000001",
-    time: "21:41:22",
-    date: "09/11/2025",
-    area: "Khu vực 1 - 1",
-    amount: "35,000 ₫",
-    method: "Tiền mặt",
-  },
-  {
-    id: "100000002",
-    time: "18:22:10",
-    date: "08/11/2025",
-    area: "Khu vực 2 - 3",
-    amount: "120,000 ₫",
-    method: "Chuyển khoản",
-  },
-];
+const QLHoaDonScreen = ({ navigation }) => {
+  const [bills, setBills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
 
-export default function InvoiceScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState("Tất cả");
+  useEffect(() => {
+    loadBills();
+  }, []);
 
-  const today = new Date();
-  const todayStr = today.toLocaleDateString("vi-VN");
+  const loadBills = async () => {
+    try {
+      const data = await getBills();
+      console.log("📌 API trả về:", data);
 
-  // Hàm xử lý sự kiện khi nhấn vào hóa đơn
-  const handleInvoicePress = (invoice) => {
-    // Điều hướng sang màn Chi tiết hoá đơn, truyền toàn bộ object invoice
-    console.log(`Đã nhấn vào hóa đơn có ID: ${invoice.id}`);
-    navigation.navigate("Chi tiết hoá đơn", { invoice });
+      if (Array.isArray(data)) {
+        setBills(data);
+      } else {
+        setBills([]);
+      }
+    } catch (error) {
+      console.log("❌ Lỗi tải hóa đơn:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const renderPaymentStatus = (paid, paidAt) => {
+    if (paid) {
+      return (
+        <Text style={styles.paid}>
+          Đã thanh toán {paidAt ? `• ${new Date(paidAt).toLocaleString()}` : ""}
+        </Text>
+      );
+    }
+    return <Text style={styles.unpaid}>Chưa thanh toán</Text>;
+  };
+
+  const renderItem = ({ item }) => {
+    const id = item.id || item._id;
+    const tableName = item.table?.name || item.tableName || "Không rõ";
+    const paymentMethod = item.paymentMethod || "Không rõ";
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate("InvoiceDetail", { billId: id })}
+      >
+        <Text style={styles.title}>Mã HD: {item.code || id}</Text>
+        <Text>Bàn: {tableName}</Text>
+
+        <Text>
+          Ngày:{" "}
+          {item.createdAt
+            ? new Date(item.createdAt).toLocaleString()
+            : "Không rõ"}
+        </Text>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Phương thức: </Text>
+          <Text>{String(paymentMethod).toUpperCase()}</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>Trạng thái: </Text>
+          {renderPaymentStatus(item.paid, item.paidAt)}
+        </View>
+
+        <Text style={styles.total}>
+          Tổng tiền: {item.total ? item.total.toLocaleString() : 0} đ
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // 🔥 Lọc theo tab
+  const filteredBills = bills.filter((bill) => {
+    if (activeTab === "all") return true;
+    if (activeTab === "paid") return bill.paid === true;
+    if (activeTab === "unpaid") return bill.paid === false;
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <View style={styles.loadingBox}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Đang tải dữ liệu...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.title}>Hoá đơn</Text>
-        <TouchableOpacity>
-          <Ionicons name="filter-outline" size={24} color="#007AFF" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={26} color="#000" />
         </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Quản lý hóa đơn</Text>
+
+        <View style={{ width: 26 }} />
       </View>
 
-      {/* Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabContainer}
-      >
-        {tabs.map((tab, index) => (
+      {/* 🔥 TAB FILTER */}
+      <View style={styles.tabContainer}>
+        {tabs.map((t) => (
           <TouchableOpacity
-            key={index}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-            onPress={() => setActiveTab(tab)}
+            key={t.value}
+            style={[
+              styles.tab,
+              activeTab === t.value && styles.activeTab,
+            ]}
+            onPress={() => setActiveTab(t.value)}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === tab && styles.activeTabText,
+                activeTab === t.value && styles.activeTabText,
               ]}
             >
-              {tab}
+              {t.label}
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
 
-      {/* Date */}
-      <Text style={styles.dateLabel}>HÔM NAY ({todayStr})</Text>
-
-      {/* Invoice List */}
-      <FlatList
-        data={invoices}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          // Thay thế View bằng TouchableOpacity
-          <TouchableOpacity
-            style={styles.invoiceItem}
-            onPress={() => handleInvoicePress(item)} // Truyền cả object invoice
-          >
-            <View style={styles.row}>
-              <Text style={styles.time}>{item.time}</Text>
-              <Text style={styles.id}>{item.id}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.area}>{item.area}</Text>
-              <Text style={styles.amount}>{item.amount}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={styles.method}>{item.method}</Text>
-            </View>
-          </TouchableOpacity>
-          // Kết thúc TouchableOpacity
-        )}
-        contentContainerStyle={{ paddingBottom: 340 }}
-      />
+      {/* LIST */}
+      {filteredBills.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <Text>Không có hóa đơn nào.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredBills}
+          keyExtractor={(item) => String(item.id || item._id)}
+          renderItem={renderItem}
+          contentContainerStyle={{
+            paddingVertical: 16,
+            paddingHorizontal: 12,
+            paddingBottom: 80,
+          }}
+        />
+      )}
     </View>
   );
-}
+};
+
+export default QLHoaDonScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 50,
-    paddingHorizontal: 20,
+    backgroundColor: "#F5F5F5",
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    elevation: 3,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
   },
+
+  /* TABS */
   tabContainer: {
     flexDirection: "row",
-    marginBottom: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   tab: {
     paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingHorizontal: 14,
+    backgroundColor: "#e5e5e5",
     borderRadius: 20,
-    backgroundColor: "#f0f0f0",
     marginRight: 10,
   },
   activeTab: {
@@ -152,53 +203,64 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    color: "#555",
+    color: "#333",
   },
   activeTabText: {
     color: "#fff",
     fontWeight: "600",
   },
-  dateLabel: {
-    fontSize: 14,
-    color: "#777",
-    marginBottom: 10,
+
+  /* LIST CARD */
+  card: {
+    padding: 16,
+    marginBottom: 12,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    elevation: 3,
   },
-  invoiceItem: {
-    // Style này áp dụng cho TouchableOpacity mới
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+
+  title: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 6,
   },
-  invoiceText: {
-    fontSize: 15,
-    color: "#333",
-  },
+
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
+    alignItems: "center",
+    marginTop: 6,
   },
-  time: {
-    fontSize: 15,
-    color: "#333",
-    fontWeight: "500",
-  },
-  id: {
-    fontSize: 15,
-    color: "#555",
-  },
-  area: {
-    fontSize: 14,
-    color: "#666",
-  },
-  amount: {
-    fontSize: 14,
-    color: "#007AFF",
+
+  label: {
     fontWeight: "600",
   },
-  method: {
-    fontSize: 13,
-    color: "#999",
-    fontStyle: "italic",
+
+  paid: {
+    color: "#28a745",
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  unpaid: {
+    color: "#d9534f",
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+
+  total: {
+    color: "#d9534f",
+    fontWeight: "bold",
+    marginTop: 8,
+  },
+
+  emptyBox: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  loadingBox: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
