@@ -9,7 +9,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getBillDetail } from "../services/billService";
 
-
 const InvoiceDetailScreen = ({ route, navigation }) => {
   const { billId } = route.params;
 
@@ -23,7 +22,6 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
   const loadDetail = async () => {
     try {
       const data = await getBillDetail(billId);
-
       console.log("📌 Chi tiết hóa đơn:", data);
       setBill(data);
     } catch (error) {
@@ -33,22 +31,41 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  const formatPlayTime = (start, end, duration) => {
-    if (!start || !end) return "Không rõ";
+  // ⭐ Tính giờ chơi fallback nếu không có start/end
+  const getPlayTime = (bill) => {
+    if (bill.startTime && bill.endTime) {
+      const s = new Date(bill.startTime);
+      const e = new Date(bill.endTime);
+      const minutes = Math.round((e - s) / 60000);
+      return `${s.getHours()}:${String(s.getMinutes()).padStart(2, "0")} → ${e.getHours()}:${String(e.getMinutes()).padStart(2, "0")} (${minutes} phút)`;
+    }
 
-    const s = new Date(start);
-    const e = new Date(end);
+    // fallback từ item type play
+    const playItem = bill.items?.find((i) => i.type === "play");
+    if (playItem) {
+      const minutes = playItem.minutes || 0;
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}h${m}m (${minutes} phút)`;
+    }
 
-    const sTime = `${String(s.getHours()).padStart(2, "0")}:${String(
-      s.getMinutes()
-    ).padStart(2, "0")}`;
-    const eTime = `${String(e.getHours()).padStart(2, "0")}:${String(
-      e.getMinutes()
-    ).padStart(2, "0")}`;
+    return "Không có dữ liệu";
+  };
 
-    const diff = duration || Math.round((e - s) / 60000);
+  const getItemName = (i) => {
+    return (
+      i.nameSnapshot ||
+      i.name ||
+      i.product?.name ||
+      (i.type === "play" ? "Tiền giờ chơi" : null) ||
+      "Không rõ"
+    );
+  };
 
-    return `${sTime} → ${eTime} (${diff} phút)`;
+  const getStaffName = (staff) => {
+    if (!staff) return "Không rõ";
+    if (typeof staff === "string") return staff;
+    return staff.name || staff.username || "Không rõ";
   };
 
   if (loading) {
@@ -68,6 +85,18 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
     );
   }
 
+  const tableName =
+    bill.table?.name ||
+    bill.tableName ||
+    "Không rõ";
+
+  const totalDiscount = Array.isArray(bill.discounts)
+    ? bill.discounts.reduce((sum, d) => sum + (d.amount || 0), 0)
+    : 0;
+
+  const products = bill.items?.filter((i) => i.type === "product") || [];
+  const playItem = bill.items?.find((i) => i.type === "play");
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
       {/* HEADER */}
@@ -81,32 +110,30 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
         <View style={{ width: 26 }} />
       </View>
 
-      {/* INFO */}
+      {/* THÔNG TIN CƠ BẢN */}
       <View style={styles.box}>
         <Text style={styles.title}>Mã hóa đơn</Text>
         <Text style={styles.value}>{bill.code}</Text>
 
         <Text style={styles.title}>Bàn</Text>
-        <Text style={styles.value}>{bill.tableName}</Text>
+        <Text style={styles.value}>{tableName}</Text>
 
         <Text style={styles.title}>Giờ chơi</Text>
-        <Text style={styles.value}>
-          {formatPlayTime(bill.startTime, bill.endTime, bill.durationMinutes)}
-        </Text>
+        <Text style={styles.value}>{getPlayTime(bill)}</Text>
       </View>
 
-      {/* ITEMS */}
+      {/* SẢN PHẨM */}
       <View style={styles.box}>
-        <Text style={styles.boxTitle}>Sản phẩm đã dùng</Text>
+        <Text style={styles.boxTitle}>Sản phẩm / dịch vụ</Text>
 
-        {bill.items?.length > 0 ? (
-          bill.items.map((p, index) => (
+        {products.length > 0 ? (
+          products.map((p, index) => (
             <View key={index} style={styles.productRow}>
               <Text style={styles.productName}>
-                {p.name} x{p.quantity}
+                {getItemName(p)} x{p.qty || p.quantity || 1}
               </Text>
               <Text style={styles.productPrice}>
-                {p.amount.toLocaleString()} đ
+                {(p.amount || 0).toLocaleString()} đ
               </Text>
             </View>
           ))
@@ -115,42 +142,44 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
         )}
       </View>
 
-      {/* MONEY */}
+      {/* TIỀN GIỜ CHƠI */}
       <View style={styles.box}>
         <Text style={styles.title}>Tiền giờ chơi</Text>
         <Text style={styles.value}>
-          {bill.playAmount.toLocaleString()} đ
+          {(playItem?.amount || bill.playAmount || 0).toLocaleString()} đ
         </Text>
 
         <Text style={styles.title}>Tiền dịch vụ</Text>
         <Text style={styles.value}>
-          {bill.serviceAmount.toLocaleString()} đ
+          {(bill.serviceAmount || 0).toLocaleString()} đ
         </Text>
 
         <Text style={styles.title}>Tạm tính</Text>
-        <Text style={styles.value}>{bill.subTotal.toLocaleString()} đ</Text>
+        <Text style={styles.value}>
+          {(bill.subTotal || 0).toLocaleString()} đ
+        </Text>
 
         <Text style={styles.title}>Phụ thu</Text>
-        <Text style={styles.value}>{bill.surcharge} đ</Text>
+        <Text style={styles.value}>
+          {(bill.surcharge || 0).toLocaleString()} đ
+        </Text>
 
         <Text style={styles.title}>Giảm giá</Text>
-        <Text style={styles.value}>
-          {bill.discounts?.length > 0 ? bill.discounts : 0} đ
-        </Text>
+        <Text style={styles.value}>{totalDiscount.toLocaleString()} đ</Text>
 
         <Text style={styles.totalLabel}>Tổng tiền</Text>
         <Text style={styles.totalValue}>
-          {bill.total.toLocaleString()} đ
+          {(bill.total || 0).toLocaleString()} đ
         </Text>
       </View>
 
-      {/* PAYMENT */}
+      {/* THANH TOÁN */}
       <View style={styles.box}>
         <Text style={styles.title}>Trạng thái thanh toán</Text>
         {bill.paid ? (
           <Text style={[styles.value, { color: "#28a745" }]}>
-            Đã thanh toán •{" "}
-            {bill.paidAt ? new Date(bill.paidAt).toLocaleString() : ""}
+            Đã thanh toán
+            {bill.paidAt ? ` • ${new Date(bill.paidAt).toLocaleString()}` : ""}
           </Text>
         ) : (
           <Text style={[styles.value, { color: "#d9534f" }]}>
@@ -159,25 +188,31 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
         )}
 
         <Text style={styles.title}>Phương thức thanh toán</Text>
-        <Text style={styles.value}>{bill.paymentMethod?.toUpperCase()}</Text>
+        <Text style={styles.value}>
+          {bill.paymentMethod?.toUpperCase() || "KHÔNG RÕ"}
+        </Text>
       </View>
 
-      {/* OTHER INFO */}
+      {/* THÔNG TIN KHÁC */}
       <View style={styles.box}>
         <Text style={styles.title}>Nhân viên xử lý</Text>
-        <Text style={styles.value}>{bill.staff}</Text>
+        <Text style={styles.value}>{getStaffName(bill.staff)}</Text>
 
         <Text style={styles.title}>Ghi chú</Text>
-        <Text style={styles.value}>{bill.note || "—"}</Text>
+        <Text style={styles.value}>{bill. note || "—"}</Text>
 
         <Text style={styles.title}>Ngày tạo</Text>
         <Text style={styles.value}>
-          {new Date(bill.createdAt).toLocaleString()}
+          {bill.createdAt
+            ? new Date(bill.createdAt).toLocaleString()
+            : "Không rõ"}
         </Text>
 
         <Text style={styles.title}>Ngày cập nhật</Text>
         <Text style={styles.value}>
-          {new Date(bill.updatedAt).toLocaleString()}
+          {bill.updatedAt
+            ? new Date(bill.updatedAt).toLocaleString()
+            : "Không rõ"}
         </Text>
       </View>
     </ScrollView>
@@ -186,23 +221,15 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
 
 export default InvoiceDetailScreen;
 
-/* ---------------------- STYLES ---------------------- */
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
+  container: { flex: 1, backgroundColor: "#F5F5F5" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
+  headerTitle: { fontSize: 18, fontWeight: "600" },
   box: {
     backgroundColor: "#fff",
     padding: 16,
@@ -210,52 +237,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     elevation: 2,
   },
-  boxTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 8,
-  },
-  value: {
-    fontSize: 14,
-    marginTop: 2,
-  },
+  boxTitle: { fontSize: 16, fontWeight: "600", marginBottom: 10 },
+  title: { fontSize: 14, fontWeight: "600", marginTop: 8 },
+  value: { fontSize: 14, marginTop: 2 },
   productRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 6,
   },
-  productName: {
-    fontSize: 14,
-  },
-  productPrice: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  totalLabel: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#d9534f",
-  },
-  totalValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#d9534f",
-    marginTop: 4,
-  },
-  loadingBox: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyBox: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  productName: { fontSize: 14 },
+  productPrice: { fontSize: 14, fontWeight: "600" },
+  totalLabel: { marginTop: 10, fontSize: 16, fontWeight: "700", color: "#d9534f" },
+  totalValue: { fontSize: 18, fontWeight: "700", color: "#d9534f", marginTop: 4 },
+  loadingBox: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyBox: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
