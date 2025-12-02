@@ -5,32 +5,34 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { authService } from "../services/authService";
 
 const menuData = [
   {
     title: "Quản lý mặt hàng",
     icon: "cube-outline",
-    children: ["Giá giờ chơi","Mặt hàng", "Thực đơn", "Danh mục", "Combo"],
+    children: ["Giá giờ chơi","Mặt hàng", "Danh mục", "Combo"],
   },
   {
     title: "Quản lý nhân viên",
     icon: "people-outline",
-    children: ["Nhân viên", "Vai trò"],
+    children: ["Nhân viên"],
   },
   {
     title: "Quản lý bàn chơi",
     icon: "hardware-chip-outline",
     children: ["Khu vực", "Bàn chơi"],
   },
- 
+
   {
-    title: "Thiết lập nhà hàng",
+    title: "Thiết lập câu lạc bộ bi-a",
     icon: "settings-outline",
     children: [
-      "Thông tin nhà hàng",
-      "Tài khoản nhà hàng",
+      "Thông tin câu lạc bộ",
+      "Tài khoản người dùng",
       "Thiết lập ngôn ngữ",
     ],
   },
@@ -49,13 +51,42 @@ export default function MoreScreen({ navigation }) {
     setExpandedIndex(index === expandedIndex ? null : index);
   };
 
+  const confirmLogout = () => {
+    Alert.alert(
+      'Xác nhận',
+      'Bạn có chắc muốn đăng xuất?',
+      [
+        { text: 'Huỷ', style: 'cancel' },
+        {
+          text: 'Đăng xuất',
+          style: 'destructive',
+          onPress: handleLogout
+        }
+      ]
+    );
+  };
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (e) {
+      // ignore - still reset navigation
+      console.warn('Logout error (ignored):', e);
+    } finally {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <TouchableOpacity style={styles.profile} onPress={() => navigation.navigate("Tài khoản")}>
         <Ionicons name="person-circle-outline" size={50} color="#007AFF" />
         <View style={{ marginLeft: 10 }}>
-          <Text style={styles.name}>Văn Tu</Text>
-          <Text style={styles.role}>Chủ nhà hàng</Text>
+          <Text style={styles.name}>Kiều Khánh Duy</Text>
+          <Text style={styles.role}>Chủ Câu lạc bộ</Text>
         </View>
       </TouchableOpacity>
 
@@ -63,7 +94,14 @@ export default function MoreScreen({ navigation }) {
         <View key={index}>
           <TouchableOpacity
             style={styles.item}
-            onPress={() => toggleExpand(index)}
+            onPress={() => {
+              // nếu item là "Đăng xuất" thì confirm logout
+              if (item.title === 'Đăng xuất') {
+                confirmLogout();
+                return;
+              }
+              toggleExpand(index);
+            }}
           >
             <View style={styles.itemLeft}>
               <Ionicons

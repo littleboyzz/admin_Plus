@@ -65,7 +65,7 @@ export default function LoginScreen({ navigation }) {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Billiard POS</Text>
+          <Text style={styles.title}>Billiard Plus</Text>
           <Text style={styles.subtitle}>Quản lý câu lạc bộ bi-a</Text>
         </View>
 
