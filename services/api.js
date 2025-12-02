@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../constants/config';
+import { resetToLogin } from '../services/navigationService'; // from src/navigationService
 
 console.log('🔌 [API] Initializing with baseURL:', API_URL);
 
@@ -50,12 +51,22 @@ api.interceptors.response.use(
 
     // Token hết hạn → xoá token → chuyển về Login
     if (status === 401) {
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('user');
+      try {
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('user');
 
-      console.log('🔒 Token expired → cleared');
+        // remove axios default header if set
+        if (api.defaults && api.defaults.headers && api.defaults.headers.common) {
+          delete api.defaults.headers.common['Authorization'];
+        }
 
-      // TODO: Nếu bạn dùng navigation global, sẽ redirect tại đây
+        console.log('🔒 Token expired → cleared');
+
+        // Reset navigation về màn hình Login
+        resetToLogin();
+      } catch (e) {
+        console.log('❌ Error clearing token:', e);
+      }
     }
 
     return Promise.reject(error);

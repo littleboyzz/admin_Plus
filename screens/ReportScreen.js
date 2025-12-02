@@ -9,11 +9,6 @@ const reportData = [
     children: [
       { label: 'Báo cáo doanh thu tổng quan' },
       { label: 'Báo cáo theo phương thức thanh toán' },
-      { label: 'Báo cáo doanh thu theo phục vụ' },
-      { label: 'Báo cáo doanh thu theo thu ngân' },
-      { label: 'Phí dịch vụ' },
-      { label: 'Hình thức phục vụ' },
-      { label: 'Hoàn tiền' },
       { label: 'Hủy đơn chưa thanh toán' },
       { label: 'Hủy hoá đơn đã thanh toán' },
     ],
@@ -25,7 +20,6 @@ const reportData = [
       { label: 'Danh mục mặt hàng' },
       { label: 'Mặt hàng bán chạy', route: 'TopProducts' }, // 👈 gắn route
       { label: 'Combo bán chạy' },
-      { label: 'Nhóm lựa chọn' },
       { label: 'Mặt hàng đã hủy' },
       { label: 'Combo đã hủy' },
     ],
@@ -51,7 +45,6 @@ const reportData = [
     icon: 'gift',
     children: [
       { label: 'Chương trình khuyến mãi' },
-      { label: 'Báo cáo chiết khấu' },
     ],
   }
 ];

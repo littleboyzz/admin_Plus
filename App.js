@@ -18,9 +18,6 @@ import AddArea from "./screens/AddArea";
 import ItemListScreen from "./screensmini/ItemListScreen";
 import ItemDetailScreen from "./screensmini/ItemDetailScreen";
 import AddItemScreen from "./screensmini/AddItemScreen";
-import RoleListScreen from "./screensmini/RoleListScreen";
-import RoleDetailScreen from "./screensmini/RoleDetailScreen";
-import RoleCreateScreen from "./screensmini/RoleCreateScreen";
 import EmployeeListScreen from "./screensmini/EmployeeListScreen";
 import EmployeeDetailScreen from "./screensmini/EmployeeDetailScreen";
 import EmployeeFormScreen from "./screensmini/EmployeeFormScreen";
@@ -29,6 +26,8 @@ import LanguageSettingScreen from "./screensmini/LanguageSettingScreen";
 import AccountScreen from './screensmini/AccountScreen';
 import LoginScreen from './screens/LoginScreen';
 import TopProductsScreen from './screensmini/TopProductsScreen';
+
+import { navigationRef } from './services/navigationService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,7 +61,7 @@ function TabNavigator() {
 /* ------------------------ MAIN APP ------------------------ */
 export default function App() {
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator>
 
         {/* Màn Login */}
@@ -96,16 +95,11 @@ export default function App() {
         <Stack.Screen name="Chi tiết mặt hàng" component={ItemDetailScreen} />
         <Stack.Screen name="Thêm mặt hàng" component={AddItemScreen} />
 
-        <Stack.Screen name="Vai trò" component={RoleListScreen} />
-        <Stack.Screen name="Chi tiết vai trò" component={RoleDetailScreen} />
-        <Stack.Screen name="Tạo vai trò" component={RoleCreateScreen} />
 
         <Stack.Screen name="Nhân viên" component={EmployeeListScreen} />
         <Stack.Screen name="Chi tiết nhân viên" component={EmployeeDetailScreen} />
         <Stack.Screen name="Form nhân viên" component={EmployeeFormScreen} />
 
-        <Stack.Screen name="Danh sách vai trò" component={RoleListScreen} />
-        <Stack.Screen name="EmployeeForm" component={EmployeeFormScreen} />
 
         {/* Khu vực screens */}
         <Stack.Screen name="Khu vực" component={ListAreasScreen} />

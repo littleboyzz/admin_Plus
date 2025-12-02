@@ -101,11 +101,6 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          onPress={() => navigation.goBack()}
-        />
         <Text style={styles.headerTitle}>Chi tiết hóa đơn</Text>
         <View style={{ width: 26 }} />
       </View>

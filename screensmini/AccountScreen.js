@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 const user = {
-  name: 'Văn Tu',
-  role: 'Chủ nhà hàng',
-  phone: '0123456789',
-  email: '',
+  name: 'Kiều Khánh Duy',
+  role: 'Chủ Câu lạc bộ',
+  phone: '0388612918',
+  email: 'kkduy24@gmail.com',
 };
 
 const getInitials = (name) => {
