@@ -43,6 +43,7 @@ const reportData = [
       { label: 'Lợi nhuận theo Combo' },
     ],
   },
+
   {
     title: 'BÁO CÁO KHUYẾN MẠI',
     icon: 'gift',
