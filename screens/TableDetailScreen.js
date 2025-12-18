@@ -23,7 +23,6 @@ const STATUS_META = {
   available: { label: 'Trống', color: '#10b981' },
   playing: { label: 'Đang chơi', color: '#0284c7' },
   reserved: { label: 'Đã đặt', color: '#7c3aed' },
-  maintenance: { label: 'Bảo trì', color: '#f59e0b' },
 };
 
 export default function TableDetailScreen({ route, navigation }) {

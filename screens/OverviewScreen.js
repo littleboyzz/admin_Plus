@@ -320,7 +320,7 @@ export default function OverviewScreen() {
                 <Ionicons name="wallet" size={32} color="#fff" />
               </View>
               <Text style={styles.statValue}>
-                {statistics.totalRevenue.toLocaleString('vi-VN')}đ
+                {statistics.totalRevenue.toLocaleString('vi-VN')}
               </Text>
               <Text style={styles.statLabel}>Tổng doanh thu</Text>
             </View>

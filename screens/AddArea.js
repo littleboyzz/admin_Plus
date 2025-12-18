@@ -32,7 +32,7 @@ export default function AddArea({ navigation }) {
   // ✅ THÊM TRẠNG THÁI LOADING
   const [loading, setLoading] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const COLORS = ['#4CAF50', '#FF9800', '#F44336', '#2196F3', '#9C27B0', '#FFC107', '#607D8B', '#E91E63', '#00BCD4'];
+  const COLORS = ['#71ae73a9', '#ff9900a5', '#f44336a8', '#2195f3aa', '#9b27b0af', '#ffc107a8', '#607d8ba5', '#e91e62ac', '#00bbd4aa'];
 
   useEffect(() => {
     navigation.setOptions({ title: 'Thêm khu vực' });

@@ -31,7 +31,6 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  // ⭐ Tính giờ chơi fallback nếu không có start/end
   const getPlayTime = (bill) => {
     if (bill.startTime && bill.endTime) {
       const s = new Date(bill.startTime);
@@ -101,7 +100,6 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       
-      {/* THÔNG TIN CƠ BẢN - CARD ĐẶC BIỆT */}
       <View style={styles.primaryCard}>
         <View style={styles.codeRow}>
           <View style={styles.codeLeft}>
@@ -314,7 +312,6 @@ const InvoiceDetailScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-      {/* Khoảng trống cuối */}
       <View style={{ height: 20 }} />
     </ScrollView>
   );

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  TextInput,
 } from "react-native";
 import { getBills } from "../services/billService";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +23,8 @@ const QLHoaDonScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     loadBills();
@@ -143,19 +146,41 @@ const QLHoaDonScreen = ({ navigation }) => {
     );
   };
 
-  // Lọc theo tab
+  // Lọc theo tab và search query
   const filteredBills = bills.filter((bill) => {
-    if (activeTab === "all") return true;
-    if (activeTab === "paid") return bill.paid === true;
-    if (activeTab === "unpaid") return bill.paid === false;
-    return true;
+    // Lọc theo tab
+    let passTab = true;
+    if (activeTab === "paid") passTab = bill.paid === true;
+    if (activeTab === "unpaid") passTab = bill.paid === false;
+    
+    // Lọc theo search query
+    let passSearch = true;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      const code = (bill.code || bill.id || bill._id || '').toString().toLowerCase();
+      const tableName = (bill.table?.name || bill.tableName || '').toLowerCase();
+      const paymentMethod = (bill.paymentMethod || '').toLowerCase();
+      const total = (bill.total || 0).toString();
+      
+      passSearch = code.includes(query) || 
+                   tableName.includes(query) || 
+                   paymentMethod.includes(query) ||
+                   total.includes(query);
+    }
+    
+    return passTab && passSearch;
   });
 
-  // Thống kê nhanh
+  // Thống kê nhanh (dựa trên dữ liệu gốc, không dựa trên filtered)
   const stats = {
     total: bills.length,
     paid: bills.filter(b => b.paid).length,
     unpaid: bills.filter(b => !b.paid).length,
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery("");
   };
 
   if (loading && !refreshing) {
@@ -187,6 +212,30 @@ const QLHoaDonScreen = ({ navigation }) => {
         </View>
       </View>
 
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={[
+          styles.searchBox,
+          isSearchFocused && styles.searchBoxFocused
+        ]}>
+          <Ionicons name="search" size={20} color={isSearchFocused ? "#007AFF" : "#999"} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Tìm theo mã, bàn, phương thức..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={clearSearch} activeOpacity={0.7}>
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
       {/* Tab Filter */}
       <View style={styles.tabContainer}>
         {tabs.map((t) => (
@@ -209,6 +258,7 @@ const QLHoaDonScreen = ({ navigation }) => {
                 styles.tabText,
                 activeTab === t.value && styles.activeTabText,
               ]}
+              numberOfLines={1}
             >
               {t.label}
             </Text>
@@ -219,12 +269,23 @@ const QLHoaDonScreen = ({ navigation }) => {
       {/* List */}
       {filteredBills.length === 0 ? (
         <View style={styles.emptyBox}>
-          <Ionicons name="receipt-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>Không có hóa đơn nào</Text>
+          <Ionicons 
+            name={searchQuery ? "search-outline" : "receipt-outline"} 
+            size={64} 
+            color="#ccc" 
+          />
+          <Text style={styles.emptyText}>
+            {searchQuery ? "Không tìm thấy kết quả" : "Không có hóa đơn nào"}
+          </Text>
           <Text style={styles.emptySubtext}>
-            {activeTab === 'paid' && 'Chưa có hóa đơn đã thanh toán'}
-            {activeTab === 'unpaid' && 'Chưa có hóa đơn chưa thanh toán'}
-            {activeTab === 'all' && 'Danh sách hóa đơn trống'}
+            {searchQuery 
+              ? `Không tìm thấy hóa đơn với từ khóa "${searchQuery}"`
+              : activeTab === 'paid' 
+                ? 'Chưa có hóa đơn đã thanh toán'
+                : activeTab === 'unpaid'
+                  ? 'Chưa có hóa đơn chưa thanh toán'
+                  : 'Danh sách hóa đơn trống'
+            }
           </Text>
         </View>
       ) : (
@@ -301,45 +362,79 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
 
-  // TABS
-  tabContainer: {
-    flexDirection: "row",
+  // SEARCH BAR
+  searchContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    marginBottom: 8,
   },
-  tab: {
+  searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#e5e5e5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchBoxFocused: {
+    borderColor: '#007AFF',
+    shadowOpacity: 0.1,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
+    padding: 0,
+  },
+
+  // TAB CONTAINER
+  tabContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     backgroundColor: "#fff",
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: '#e5e5e5',
-    gap: 6,
+    gap: 4,
+    minHeight: 38,
   },
   activeTab: {
     backgroundColor: "#007AFF",
     borderColor: '#007AFF',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#666",
     fontWeight: '500',
+    flexShrink: 1,
+    textAlign: 'center',
   },
   activeTabText: {
     color: "#fff",
     fontWeight: "600",
   },
 
-  // LIST
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 80,
   },
 
-  // CARD
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,

@@ -15,7 +15,7 @@ const menuData = [
     title: "Quản lý mặt hàng",
     icon: "cube-outline",
     color: "#FF6B35",
-    children: ["Giá giờ chơi", "Mặt hàng", "Danh mục", "Combo"],
+    children: [ "Mặt hàng", "Danh mục", "Combo"],
   },
   {
     title: "Quản lý nhân viên",
