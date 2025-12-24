@@ -32,6 +32,17 @@ function normalizeTimeRule(promo) {
     minMinutes: r.minMinutes || 0,
   };
 }
+function normalizeDiscount(discount) {
+  if (!discount) return null;
+
+  return {
+    ...discount,
+    type: discount.type ?? 'amount', // fallback dữ liệu cũ
+  };
+}
+
+
+
 
 export default function PromotionDetailScreen({ navigation, route }) {
   const { promotionId } = route.params;
@@ -104,6 +115,9 @@ export default function PromotionDetailScreen({ navigation, route }) {
 
   if (!promo) return null;
 
+  const discount = normalizeDiscount(promo.discount);
+  const discountType = discount?.type;
+const isPercent = ['percent', 'percentage'].includes(discountType);
   const timeRule = normalizeTimeRule(promo);
 
   return (
@@ -133,21 +147,26 @@ export default function PromotionDetailScreen({ navigation, route }) {
         <Detail label="Thứ tự áp dụng" value={String(promo.applyOrder)} />
 
         {/* ===== DISCOUNT ===== */}
-        <Section title="Mức giảm">
-          <Detail
-            label="Loại"
-            value={promo.discount.type === 'percentage' ? 'Phần trăm' : 'Số tiền'}
-          />
-          <Detail
-            label="Giá trị"
-            value={
-              promo.discount.type === 'percentage'
-                ? `${promo.discount.value}%`
-                : `${promo.discount.value.toLocaleString()}đ`
-            }
-          />
-          <Detail label="Áp dụng cho" value={promo.discount.applyTo} />
-        </Section>
+ <Section title="Mức giảm">
+  <Detail
+    label="Loại"
+    value={isPercent ? 'Phần trăm' : 'Số tiền'}
+  />
+  <Detail
+    label="Giá trị"
+    value={
+      isPercent
+        ? `${discount?.value ?? 0}%`
+        : `${(discount?.value ?? 0).toLocaleString()}đ`
+    }
+  />
+  <Detail
+    label="Áp dụng cho"
+    value={SCOPE_LABEL[discount?.applyTo] ?? discount?.applyTo}
+  />
+</Section>
+
+
 
         {/* ===== TIME RULE ===== */}
         {promo.scope === 'time' && (
